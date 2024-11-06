@@ -1,0 +1,139 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+file_extensions:
+  - src
+  - dat
+scope: source.krl
+
+contexts:
+  # The prototype context is prepended to all contexts but those setting
+  # meta_include_prototype: false.
+  prototype:
+    - include: comments
+
+  main:
+    # The main context is the initial starting point of our syntax.
+    # Include other contexts from here (or specify them directly).
+    - include: constants
+    - include: motion
+    - include: keywords
+    - include: numbers
+    - include: strings
+    - include: robotvariables
+    - include: functions
+
+
+  constants:
+    - match: '\bFALSE\b'
+      scope: constant.language.boolean.false.krl
+
+    - match: '\bTRUE\b'
+      scope: constant.language.boolean.true.krl
+
+  keywords:
+    # Keywords are if, else for and while.
+    # Note that blackslashes don't need to be escaped within single quoted
+    # strings in YAML. When using single quoted strings, only single quotes
+    # need to be escaped: this is done by using two single quotes next to each
+    # other.
+
+    - match: '(?<=DEF )\w+\b'
+      scope: entity.name.function.krl
+
+    - match: '\b(IF|THEN|ELSE|ENDIF|WHILE|FOR|ENDFOR|WAIT|TO|CONTINUE|AND|SWITCH|CASE)\b'
+      scope: keyword.control.krl
+
+    - match: '\b(DEF|END)\b'
+      scope: keyword.control.krl
+
+    - match: '='
+      scope: keyword.operator.assignment.krl
+
+    - match: '\b(INT|BOOL|(DECL \w+\b)|CHAR)\b'
+      scope: storage.type.krl
+
+    - match: '(<>|==|>=|<=)'
+      scope: keyword.operator.comparison.krl
+
+  motion:
+    - match: '\b(LIN|PTP|C_PTP|C_DIS)\b'
+      scope: entity.name.function.krl
+
+  numbers:
+    - match: '\b(-)?[0-9.]+\b'
+      scope: constant.numeric.krl
+
+  robotvariables:
+    - match: '\$\w+'
+      scope: keyword.control.krl
+
+    - match: '\#\w+'
+      scope: constant.language.boolean.true.krl
+
+    - match: '\b(A1|A2|A3|A4|A5|A6|X|Y|Z|A|B|C|E1|E2|E3|E4|E5|E6|S|T)\b'
+      # scope: entity.name.functioncontrol.krl
+      scope: entity.other.inherited-class.krl
+
+  functions:
+    - match: '(?:\b([a-zA-Z0-9_]*)\b(?=\s*\())'
+      scope: variable.function.krl
+
+  strings:
+    # Strings begin and end with quotes, and use backslashes as an escape
+    # character.
+    - match: '"'
+      scope: punctuation.definition.string.begin.krl
+      push: inside_string
+
+    - match: "'"
+      scope: punctuation.definition.string.begin.krl
+      push: inside_single_quote_string
+
+  inside_single_quote_string:
+    - meta_include_prototype: false
+    - meta_scope: string.quoted.double.krl
+    - match: "'"
+      scope: punctuation.definition.string.end.krl
+      pop: true
+
+  inside_string:
+    - meta_include_prototype: false
+    - meta_scope: string.quoted.double.krl
+    - match: '\.'
+      scope: constant.character.escape.krl
+    - match: '"'
+      scope: punctuation.definition.string.end.krl
+      pop: true
+
+  comments:
+
+    # Comments begin with a ';' and finish at the end of the line.
+    - match: ';'
+      scope: punctuation.definition.comment.krl
+      push:
+        # This is an anonymous context push for brevity.
+        - meta_scope: comment.line.double-slash.krl
+        - match: $\n?
+          pop: true
+
+    - match: ';FOLD'
+      scope: begin.fold.krl
+      captures:
+        1: punctuation.definition.region
+      push:
+        - meta_scope: meta.block.krl
+        - match: ';ENDFOLD'
+          scope: end.fold.krl
+          captures:
+            1: punctuation.definition.region
+          pop: true
+
+    - match: '&'
+      scope: punctuation.definition.comment.krl
+      push:
+        # This is an anonymous context push for brevity.
+        - meta_scope: comment.line.double-slash.krl
+        - match: $\n?
+          pop: true
+
